@@ -1,0 +1,18 @@
+include MANIFEST.in
+include requirements.txt
+include *.json
+include *.md
+include *.py
+include *.txt
+recursive-include casier_closing *.css
+recursive-include casier_closing *.csv
+recursive-include casier_closing *.html
+recursive-include casier_closing *.ico
+recursive-include casier_closing *.js
+recursive-include casier_closing *.json
+recursive-include casier_closing *.md
+recursive-include casier_closing *.png
+recursive-include casier_closing *.py
+recursive-include casier_closing *.svg
+recursive-include casier_closing *.txt
+recursive-exclude casier_closing *.pyc
