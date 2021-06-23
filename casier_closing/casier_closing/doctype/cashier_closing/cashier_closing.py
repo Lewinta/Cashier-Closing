@@ -11,10 +11,44 @@ from frappe import _, msgprint, throw
 
 class CashierClosing(Document):
 	def before_save(self):
+		self.get_invoices()
 		self.get_sys_payments()
 		self.get_custody()
 		self.make_calculations()
 
+	def get_invoices(self):
+		self.invoices = []
+		filters = {
+			"posting_date": self.date,
+			"pos_profile": self.pos_profile
+		}
+		
+		data = frappe.db.sql("""
+			select 
+				`tabSales Invoice`.name as `invoice`,
+				`tabSales Invoice`.posting_date as `date`,
+				`tabSales Invoice`.customer_name as `customer`,
+				`tabSales Invoice Payment`.mode_of_payment,
+				`tabSales Invoice`.grand_total,
+				`tabSales Invoice`.paid_amount,
+				`tabSales Invoice`.outstanding_amount
+			from 
+				`tabSales Invoice`
+			join
+				`tabSales Invoice Payment`
+			on
+				`tabSales Invoice`.name = `tabSales Invoice Payment`.parent
+			where 
+				`tabSales Invoice`.posting_date = %(posting_date)s
+			and 
+				`tabSales Invoice`.pos_profile = %(pos_profile)s
+			and 
+				`tabSales Invoice`.docstatus = 1
+		""", filters, debug=False, as_dict=True)
+		
+		for row in data:
+			self.append("invoices", row)
+	
 	def get_sys_payments(self):
 		filters = {
 			"posting_date": self.date,
@@ -28,6 +62,7 @@ class CashierClosing(Document):
 			FROM
 				(
 					select 
+						`tabSales Invoice`.name as document,
 						`tabSales Invoice`.pos_profile,
 						`tabSales Invoice Payment`.mode_of_payment,
 						sum(`tabSales Invoice Payment`.amount) as paid_amount
@@ -49,6 +84,7 @@ class CashierClosing(Document):
 					UNION
 
 					select 
+						`tabPayment Entry Reference`.reference_name as document,
 						`tabPayment Entry`.pos_profile,
 						`tabPayment Entry`.mode_of_payment,
 						SUM(`tabPayment Entry Reference`.allocated_amount) paid_amount																

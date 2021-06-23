@@ -32,6 +32,7 @@ frappe.ui.form.on('Cashier Closing', {
 	reset_payments_table(frm){
 		frm.clear_table("payments");
 		frm.add_child("payments", {"mode_of_payment": "EFECTIVO", "sys_amount": 0, "difference": 0});
+		frm.add_child("payments", {"mode_of_payment": "Tarjetas de credito", "sys_amount": 0, "difference": 0});
 		frm.refresh_field("payments");
 	}
 
